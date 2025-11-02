@@ -11,11 +11,29 @@ connectDB();
 
 const app = express();
 
-// --- CORS Configuration ---
-// This simple configuration is the most reliable.
-// It tells the server to only accept requests from the URL
-// defined in your CLIENT_URL environment variable on Render.
-app.use(cors({ origin: process.env.CLIENT_URL }));
+// --- START: FINAL CORS CONFIGURATION ---
+// This array lists all the frontend URLs that are allowed to make requests to this backend.
+const allowedOrigins = [
+  process.env.CLIENT_URL, // The live Vercel URL from Render's environment variables
+  'http://localhost:5173'  // The URL for local development
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // The 'origin' is the URL of the site making the request (e.g., your Vercel site).
+    // We check if this origin is in our list of allowed origins.
+    // The '!origin' part allows requests that don't have an origin (like Postman).
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true); // Allow the request
+    } else {
+      callback(new Error('Not allowed by CORS')); // Block the request
+    }
+  }
+};
+
+app.use(cors(corsOptions));
+// --- END: FINAL CORS CONFIGURATION ---
+
 
 // --- Middleware ---
 app.use(express.json()); // To parse JSON bodies
